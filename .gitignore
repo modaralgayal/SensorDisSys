@@ -1,0 +1,7 @@
+# Some keyword exclusions to start off
+test
+main
+build
+
+# clangd cache and any other cache I guess
+.cache
