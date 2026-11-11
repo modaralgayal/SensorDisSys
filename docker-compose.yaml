@@ -1,0 +1,16 @@
+services:
+  server: 
+    build: 
+      context: .
+      dockerfile: Dockerfile.server
+    ports:
+      - "5000:5000"
+
+  client: 
+    build: 
+      context: .
+      dockerfile: Dockerfile.client
+
+    entrypoint: ["./build/SensorDisSys","5001", "ws://server:5000"]
+    depends_on:
+      - server

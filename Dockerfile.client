@@ -1,0 +1,11 @@
+FROM gcc
+
+WORKDIR /usr/src/app
+
+RUN apt-get update && apt-get install -y cmake
+
+COPY . .
+
+RUN cmake -B build && cmake --build build
+
+EXPOSE 5001

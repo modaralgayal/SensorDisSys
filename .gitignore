@@ -3,5 +3,6 @@ test
 main
 build
 
+k3d
 # clangd cache and any other cache I guess
 .cache
