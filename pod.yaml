@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: sensornode
+
+spec:
+  restartPolicy: Never
+
+  volumes: 
+    - name: shared-data 
+      emptyDir: {}  # An empty directory that containers can use to share data.
+    
+  containers:
+    - name: server-sensordissys
+      image: sensordissys-server:latest
+      imagePullPolicy: IfNotPresent
+
+    
+    - name: client-sensordissys
+      image: sensordissys-client:latest
+      imagePullPolicy: IfNotPresent
+
+      
+      command: ["./build/SensorDisSys","5001", "ws://127.0.0.1:5000"]
