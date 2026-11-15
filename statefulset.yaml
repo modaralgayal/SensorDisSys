@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Service
+metadata: 
+  name: sensornode
+spec: 
+  clusterIP: None
+  selector:
+    app: sensornode
+  ports:
+    - port: 5000
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sensornode
+spec:
+  serviceName: sensornode
+  replicas: 3
+  selector:
+    matchLabels:
+      app: sensornode
+  
+  template:
+    metadata:
+      labels:
+        app: sensornode
+    
+    spec: 
+      containers:
+        - name: node 
+          image: sensordissys-server:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c"]
+          args:
+            - |
+              if [ "$(hostname)" = "sensornode-0" ]; then
+                exec ./build/SensorDisSys 5000
+              else
+                exec ./build/SensorDisSys 5000 ws://sensornode-0.sensornode:5000
+              fi
