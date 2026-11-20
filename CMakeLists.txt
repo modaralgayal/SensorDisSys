@@ -32,7 +32,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(websocketpp)
 
-add_executable(${PROJECT_NAME} src/main.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp src/vec_utils.cpp src/vec_utils.h)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     ASIO_STANDALONE
@@ -43,6 +43,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     include
     ${asio_SOURCE_DIR}/asio/include
     ${websocketpp_SOURCE_DIR}
+    ${PROJECT_NAME} src/vec_utils.h
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE

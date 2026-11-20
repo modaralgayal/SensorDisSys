@@ -3,7 +3,10 @@
 #include <set>
 #include <random>
 #include <string>
+#include <sstream>
+#include "vec_utils.h"
 
+#define ASIO_STANDALONE  
 #include <glog/logging.h>
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/config/asio_no_tls_client.hpp>
@@ -26,7 +29,11 @@ private:
     std::set<Connection, ConnectionCompare> m_peers;
     // a dummy set of weights for initial testing. Should be a separate class in the future.
     std::vector<double> m_weights;
+    std::vector<double> running_sum_lambda; // Push sum of all weights that THIS node has sent to far. 
+    double step_size = 0.5; // This is how much the difference incoming weights affect 
+                            // the vector.
 
+    // Node's own weights
     void generate_weights(int feature_count) {
         std::random_device rdev;
         std::mt19937 gen(rdev());
@@ -36,11 +43,11 @@ private:
         }
     }
 
-    std::string weights_as_string() {
+    std::string weights_as_string(std::vector<double> weights) {
         std::string payload = "[";
-        for (size_t i = 0; i < m_weights.size(); i++) {
-            payload+= std::to_string(m_weights[i]);
-            if (i < m_weights.size() - 1) payload += ", ";
+        for (size_t i = 0; i < weights.size(); i++) {
+            payload+= std::to_string(weights[i]);
+            if (i < weights.size() - 1) payload += ", ";
         }
         payload += "]";
         return payload;
@@ -54,9 +61,9 @@ private:
                     return;
                 }
                 if (m_peers.size() > 0) {
-                    std::string payload = weights_as_string();
+                    std::string payload = weights_as_string(m_weights);
                     LOG(INFO) << "Broadcasting to " << m_peers.size() << " peers. " << "Broadcasted payload: " << payload;
-
+                
                     for (Connection client : m_peers)
                         m_server.send(client, payload, websocketpp::frame::opcode::text);
                 }
@@ -65,6 +72,7 @@ private:
     }
 
 public:
+
     SwarmNode() {
         generate_weights(3); // generate a vector of three weights for now
         m_server.clear_access_channels(websocketpp::log::alevel::all); // disable internal library logs for now
@@ -83,8 +91,16 @@ public:
             m_peers.erase(peer);
         };
 
-        auto on_message = [](Connection sender, auto msg) {
+        auto on_message = [this](Connection sender, auto msg) {
+
+            std::string payload_as_string = msg->get_payload();
+            std::vector<double> payload = convert_to_vec(payload_as_string);
+            std::vector<double> lambda_weights = calc_lambda_running_sum(
+                payload, m_weights, step_size
+            );
+            m_weights = lambda_weights;
             LOG(INFO) << "Message received: " << msg->get_payload();
+            LOG(INFO) << "New weights: " << weights_as_string(lambda_weights);
         };
 
         m_server.set_open_handler(on_open);
@@ -95,6 +111,7 @@ public:
         m_client.set_close_handler(on_close);
         m_client.set_message_handler(on_message);
     }
+
 
     void send_message(const std::string& uri) {
         websocketpp::lib::error_code error;
