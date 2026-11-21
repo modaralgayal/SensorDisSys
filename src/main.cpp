@@ -24,6 +24,7 @@ private:
     Server m_server; 
     // a set tracking connections to peers
     std::set<Connection, ConnectionCompare> m_peers;
+    std::set<std::string> m_peers_uri; // a set of peer URIs to connect to
     // a dummy set of weights for initial testing. Should be a separate class in the future.
     std::vector<double> m_weights;
 
@@ -65,7 +66,7 @@ private:
     }
 
 public:
-    SwarmNode() {
+    explicit SwarmNode(std::set<std::string> peers = {}) : m_peers_uri(std::move(peers)) {
         generate_weights(3); // generate a vector of three weights for now
         m_server.clear_access_channels(websocketpp::log::alevel::all); // disable internal library logs for now
         m_client.clear_access_channels(websocketpp::log::alevel::all);
@@ -123,11 +124,11 @@ int main(const int argc, const char* argv[]) {
     FLAGS_logtostderr = 1;
 
     uint16_t port = (argc >= 2) ? (uint16_t)std::stoi(argv[1]) : 5000; // default to port 5000
-    std::string peer_uri = (argc >= 3) ? argv[2] : ""; // set connection target for testing
+    std::set<std::string> peers_uri;
+    for (int i = 2; i < argc; i++)
+        peers_uri.insert(argv[i]);
 
-    SwarmNode node;
-
-    if (!peer_uri.empty()) node.send_message(peer_uri);
+    SwarmNode node(std::move(peers_uri));
 
     node.start(port);
 
