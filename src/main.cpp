@@ -130,6 +130,10 @@ public:
         LOG(INFO) << "Starting SwarmNode on port " << port;
         m_server.listen(port);
         m_server.start_accept();
+
+        for (const std::string& peer_uri : m_peers_uri)
+            send_message(peer_uri);
+
         broadcast();
         m_server.run();
     }
