@@ -27,7 +27,8 @@ spec:
       labels:
         app: sensornode
     
-    spec: 
+    spec:
+      terminationGracePeriodSeconds: 2
       containers:
         - name: node 
           image: sensordissys-server:latest
@@ -35,8 +36,13 @@ spec:
           command: ["sh", "-c"]
           args:
             - |
-              if [ "$(hostname)" = "sensornode-0" ]; then
-                exec ./build/SensorDisSys 5000
-              else
-                exec ./build/SensorDisSys 5000 ws://sensornode-0.sensornode:5000
-              fi
+              ID=${HOSTNAME##*-}
+              PEERS=$(grep "^$ID " /config/topology.txt | cut -d' ' -f2-)
+              exec ./build/SensorDisSys 5000 $PEERS
+          volumeMounts:
+            - name: topology
+              mountPath: /config
+      volumes:
+        - name: topology
+          configMap:
+            name: swarm-topology

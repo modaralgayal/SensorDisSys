@@ -7,3 +7,4 @@ vec_utils
 k3d
 # clangd cache and any other cache I guess
 .cache
+kubectl

@@ -4,9 +4,13 @@ WORKDIR /usr/src/app
 
 RUN apt-get update && apt-get install -y cmake
 
-COPY . .
+# Cache dependencies separately to speedup rebuilds
+COPY CMakeLists.txt .
+RUN mkdir src && touch src/main.cpp src/vec_utils.cpp src/vec_utils.h \
+    && cmake -B build && cmake --build build --target glog
 
-RUN cmake -B build && cmake --build build
+COPY src ./src
+RUN cmake --build build -j
 
 EXPOSE 5000
 

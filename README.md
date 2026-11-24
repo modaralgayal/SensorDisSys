@@ -4,6 +4,11 @@ Clone this repository
 
 In order to run the cluster, run these commands:
 
+Compose the container:
+```
+docker compose up --build
+```
+
 Create the cluster:
 ```
 k3d cluster create sensornet
