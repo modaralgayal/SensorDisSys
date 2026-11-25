@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.22.0)
 project(SensorDisSys VERSION 0.1.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -32,7 +32,11 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(websocketpp)
 
-add_executable(${PROJECT_NAME} src/main.cpp src/vec_utils.cpp src/vec_utils.h)
+add_executable(${PROJECT_NAME} 
+    src/main.cpp 
+    src/vec_utils.cpp src/vec_utils.h
+    src/swarm_node.cpp src/swarm_node.h
+)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     ASIO_STANDALONE
@@ -40,10 +44,11 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE 
-    include
+    src
+)
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE
     ${asio_SOURCE_DIR}/asio/include
     ${websocketpp_SOURCE_DIR}
-    ${PROJECT_NAME} src/vec_utils.h
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE

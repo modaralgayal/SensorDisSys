@@ -6,7 +6,10 @@ RUN apt-get update && apt-get install -y cmake
 
 # Cache dependencies separately to speedup rebuilds
 COPY CMakeLists.txt .
-RUN mkdir src && touch src/main.cpp src/vec_utils.cpp src/vec_utils.h \
+RUN mkdir src && \
+    touch src/main.cpp \
+    src/vec_utils.cpp src/vec_utils.h \
+    src/swarm_node.cpp src/swarm_node.h \
     && cmake -B build && cmake --build build --target glog
 
 COPY src ./src

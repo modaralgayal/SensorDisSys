@@ -1,21 +1,17 @@
-#include <iostream>
-#include <vector>
-#include <sstream>
 #include "vec_utils.h"
 
 
 std::vector<double> calc_lambda_running_sum (std::vector<double> payload, 
-    
-    std::vector<double> m_weights, double step_size) {
+    std::vector<double> weights, double step_size) {
         std::cout << "PASSED STEP SIZE: " << step_size << "\n";
 
 
         try
         {
             std::cout << "New weights: ";
-            for (int i = 0; i < m_weights.size(); i++) {
-                m_weights[i] += step_size  * (payload[i] - m_weights[i]);
-                std::cout << m_weights[i] << " ";
+            for (int i = 0; i < weights.size(); i++) {
+                weights[i] += step_size  * (payload[i] - weights[i]);
+                std::cout << weights[i] << " ";
             }
             std::cout << "\n";
 
@@ -23,9 +19,10 @@ std::vector<double> calc_lambda_running_sum (std::vector<double> payload,
         catch(const std::exception& e)
         {
             std::cerr << e.what() << " Error in calc_lambda_running_sum" << '\n';
+            return {};
         }
         
-        return m_weights;
+        return weights;
 }
 
 double sum_elements(std::vector<double> vec) {
@@ -41,6 +38,7 @@ double sum_elements(std::vector<double> vec) {
     catch(const std::exception& e)
     {
         std::cerr << e.what() << " Error in sum_elements" << '\n';
+        return {};
     }      
 }
 
@@ -74,5 +72,6 @@ std::vector<double> convert_to_vec (std::string& payl) {
         catch(const std::exception& e)
         {
             std::cerr << e.what() << " Error in convert_to_vec" << '\n';
+            return {};
         }
     };
