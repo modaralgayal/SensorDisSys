@@ -9,7 +9,7 @@ std::vector<double> calc_lambda_running_sum (std::vector<double> payload,
     std::vector<double> m_weights, double step_size) {
         std::cout << "PASSED STEP SIZE: " << step_size << "\n";
 
-
+  
         try
         {
             std::cout << "New weights: ";

@@ -5,8 +5,10 @@
 #include <string>
 #include <sstream>
 #include "vec_utils.h"
+#include <nlohmann/json.hpp>
+using nlohmann::json;
 
-#define ASIO_STANDALONE  
+#define ASIO_STANDALONE
 #include <glog/logging.h>
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/config/asio_no_tls_client.hpp>
@@ -31,9 +33,12 @@ private:
     // a dummy set of weights for initial testing. Should be a separate class in the future.
     std::vector<double> m_weights;
     std::vector<double> running_sum_lambda; // Push sum of all weights that THIS node has sent to far. 
-    double step_size = 0.5; // This is how much the difference incoming weights affect 
+    double step_size = 0.05; // This is how much the difference incoming weights affect 
                             // the vector.
 
+
+    json j; 
+    
     // Node's own weights
     void generate_weights(int feature_count) {
         std::random_device rdev;
@@ -42,7 +47,10 @@ private:
         for (int i = 0; i < feature_count; i++) {
             m_weights.push_back(dist(gen));
         }
+
+        j["m_weights"] = m_weights;
     }
+
 
     std::string weights_as_string(std::vector<double> weights) {
         std::string payload = "[";
@@ -62,9 +70,11 @@ private:
                     return;
                 }
                 if (m_peers.size() > 0) {
-                    std::string payload = weights_as_string(m_weights);
-                    LOG(INFO) << "Broadcasting to " << m_peers.size() << " peers. " << "Broadcasted payload: " << payload;
-                
+                    j["m_weights"] = m_weights;
+                    std::string payload = j.dump();
+                    LOG(INFO) << "Broadcasting to " << m_peers.size()
+                              << " peers. Payload: " << payload;
+
                     for (Connection client : m_peers)
                         m_server.send(client, payload, websocketpp::frame::opcode::text);
                 }
@@ -92,15 +102,17 @@ public:
         };
 
         auto on_message = [this](Connection sender, auto msg) {
+            try {
+                json parsed = json::parse(msg->get_payload());
+                std::vector<double> payload =
+                    parsed["m_weights"].get<std::vector<double>>();
 
-            std::string payload_as_string = msg->get_payload();
-            std::vector<double> payload = convert_to_vec(payload_as_string);
-            std::vector<double> lambda_weights = calc_lambda_running_sum(
-                payload, m_weights, step_size
-            );
-            m_weights = lambda_weights;
-            LOG(INFO) << "Message received: " << msg->get_payload();
-            LOG(INFO) << "New weights: " << weights_as_string(lambda_weights);
+                m_weights = calc_lambda_running_sum(payload, m_weights, step_size);
+                LOG(INFO) << "Message received. New weights: "
+                          << weights_as_string(m_weights);
+            } catch (const std::exception& e) {
+                LOG(ERROR) << "Failed to parse incoming message: " << e.what();
+            }
         };
 
         m_server.set_open_handler(on_open);
