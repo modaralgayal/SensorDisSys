@@ -32,6 +32,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(websocketpp)
 
+FetchContent_Declare(
+    nlohmann
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG        v3.11.3
+)
+set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(nlohmann)
+
 add_executable(${PROJECT_NAME} src/main.cpp src/vec_utils.cpp src/vec_utils.h)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
@@ -49,6 +57,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME} PRIVATE
     glog::glog
     pthread
+    nlohmann_json::nlohmann_json
 )
 
 target_compile_options(${PROJECT_NAME} PRIVATE
