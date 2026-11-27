@@ -71,7 +71,7 @@ private:
                 }
                 if (m_peers.size() > 0) {
                     j["m_weights"] = m_weights;
-                    std::string payload = j.dump();
+                    std::string payload = j.dump(4);
                     LOG(INFO) << "Broadcasting to " << m_peers.size()
                               << " peers. Payload: " << payload;
 
